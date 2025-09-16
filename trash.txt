@@ -1,0 +1,36 @@
+def gauss(n, a):
+    # Прямой ход
+    for i in range(n):
+        # Поиск главного элемента (частичный выбор)
+        max_row = i
+        for r in range(i+1, n):
+            if abs(a[r][i]) > abs(a[max_row][i]):
+                max_row = r
+
+        if abs(a[max_row][i]) < 1e-12:
+            return None  # нет единственного решения
+
+        # Перестановка строк (in-place)
+        if max_row != i:
+            a[i], a[max_row] = a[max_row], a[i]
+
+        # Нормализация ведущего элемента
+        div = a[i][i]
+        for k in range(i, n+1):
+            a[i][k] /= div
+
+        # Обнуление столбца ниже
+        for r in range(i+1, n):
+            factor = a[r][i]
+            if factor != 0:
+                for k in range(i, n+1):
+                    a[r][k] -= factor * a[i][k]
+
+    # Обратный ход
+    x = [0.0] * n
+    for i in range(n-1, -1, -1):
+        s = a[i][n]
+        for j in range(i+1, n):
+            s -= a[i][j] * x[j]
+        x[i] = s
+    return x
