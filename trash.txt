@@ -1,26 +1,23 @@
 def sor(n, a, omega=1.25, tol=1e-9, max_iter=10000):
     x = [0.0] * n  # начальное приближение
 
-    for _ in range(max_iter):
-        x_new = x[:]
+    for iteration in range(max_iter):
+        max_diff = 0.0
         for i in range(n):
-            # --- проверка на ноль на диагонали ---
-            if abs(a[i][i]) < 1e-12:
-                # ищем строку ниже с ненулевым элементом
-                swap = -1
-                for r in range(i+1, n):
-                    if abs(a[r][i]) > 1e-12:
-                        swap = r
-                        break
-                if swap == -1:
-                    raise ValueError(f"Невозможно решить: ноль на диагонали в строке {i}")
-                a[i], a[swap] = a[swap], a[i]
+            diag = a[i][i]
+
+            # если диагональ почти ноль → невозможно продолжить
+            if abs(diag) < 1e-14:
+                raise ValueError(f"Нулевой элемент на диагонали в строке {i}. Метод SOR не применим.")
 
             s1 = sum(a[i][j] * x[j] for j in range(i))
             s2 = sum(a[i][j] * x[j] for j in range(i+1, n))
-            x[i] = (1 - omega) * x[i] + omega * (a[i][n] - s1 - s2) / a[i][i]
 
-        if max(abs(x[i] - x_new[i]) for i in range(n)) < tol:
-            return x
+            new_xi = (1 - omega) * x[i] + omega * (a[i][n] - s1 - s2) / diag
+            max_diff = max(max_diff, abs(new_xi - x[i]))
+            x[i] = new_xi
 
-    return x
+        if max_diff < tol:
+            return x  # решение найдено
+
+    raise RuntimeError("Метод SOR не сошёлся за указанное число итераций")
