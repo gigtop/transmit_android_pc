@@ -6,7 +6,164 @@ def sor(n, a, omega=1.25, tol=1e-9, max_iter=10000):
         for i in range(n):
             diag = a[i][i]
 
-            # если диагональ почти ноль → невозможно продолжить
+            # #include <iostream>
+using namespace std;
+
+class MySet {
+private:
+    int* data;       // динамический массив для элементов
+    int size;        // текущее количество элементов
+    int capacity;    // вместимость массива
+
+    static int* UNIVERSUM;  // универсум
+    static int U_size;
+
+    // Увеличение массива при переполнении
+    void resize() {
+        int newCap = capacity * 2;
+        int* newData = new int[newCap];
+        for (int i = 0; i < size; i++) {
+            newData[i] = data[i];
+        }
+        delete[] data;
+        data = newData;
+        capacity = newCap;
+    }
+
+public:
+    // Конструктор
+    MySet(int cap = 10) {
+        size = 0;
+        capacity = cap;
+        data = new int[capacity];
+    }
+
+    // Деструктор
+    ~MySet() {
+        delete[] data;
+    }
+
+    // Включить элемент
+    void add(int t) {
+        if (!contains(t)) {
+            if (size == capacity) resize();
+            data[size++] = t;
+        }
+    }
+
+    // Принадлежит?
+    bool contains(int t) const {
+        for (int i = 0; i < size; i++) {
+            if (data[i] == t) return true;
+        }
+        return false;
+    }
+
+    // Исключить элемент
+    void remove(int t) {
+        for (int i = 0; i < size; i++) {
+            if (data[i] == t) {
+                for (int j = i; j < size - 1; j++) {
+                    data[j] = data[j + 1];
+                }
+                size--;
+                break;
+            }
+        }
+    }
+
+    // Пусто?
+    bool isEmpty() const {
+        return size == 0;
+    }
+
+    // Объединение
+    MySet Union(const MySet& other) const {
+        MySet result(size + other.size);
+        for (int i = 0; i < size; i++) result.add(data[i]);
+        for (int i = 0; i < other.size; i++) result.add(other.data[i]);
+        return result;
+    }
+
+    // Пересечение
+    MySet Intersection(const MySet& other) const {
+        MySet result;
+        for (int i = 0; i < size; i++) {
+            if (other.contains(data[i])) result.add(data[i]);
+        }
+        return result;
+    }
+
+    // Разность
+    MySet Difference(const MySet& other) const {
+        MySet result;
+        for (int i = 0; i < size; i++) {
+            if (!other.contains(data[i])) result.add(data[i]);
+        }
+        return result;
+    }
+
+    // Дополнение
+    MySet Complement() const {
+        MySet result;
+        for (int i = 0; i < U_size; i++) {
+            if (!contains(UNIVERSUM[i])) result.add(UNIVERSUM[i]);
+        }
+        return result;
+    }
+
+    // Установить универсум
+    static void setUniversum(int arr[], int n) {
+        delete[] UNIVERSUM;
+        U_size = n;
+        UNIVERSUM = new int[n];
+        for (int i = 0; i < n; i++) {
+            UNIVERSUM[i] = arr[i];
+        }
+    }
+
+    // Печать
+    void print() const {
+        cout << "{ ";
+        for (int i = 0; i < size; i++) cout << data[i] << " ";
+        cout << "}";
+    }
+};
+
+// Инициализация статических полей
+int* MySet::UNIVERSUM = nullptr;
+int MySet::U_size = 0;
+
+
+// -------------------- Демонстрация --------------------
+int main() {
+    int U[] = {1, 2, 3, 4, 5};
+    MySet::setUniversum(U, 5);
+
+    MySet A, B;
+
+    A.add(1);
+    A.add(2);
+    A.add(3);
+
+    B.add(3);
+    B.add(4);
+
+    cout << "A = "; A.print(); cout << endl;
+    cout << "B = "; B.print(); cout << endl;
+
+    cout << "Объединение: "; A.Union(B).print(); cout << endl;
+    cout << "Пересечение: "; A.Intersection(B).print(); cout << endl;
+    cout << "Разность A - B: "; A.Difference(B).print(); cout << endl;
+    cout << "Дополнение A: "; A.Complement().print(); cout << endl;
+    cout << "Пусто ли A? " << (A.isEmpty() ? "Да" : "Нет") << endl;
+    cout << "Элемент 2 принадлежит A? " << (A.contains(2) ? "Да" : "Нет") << endl;
+
+    A.remove(2);
+    cout << "После удаления 2: "; A.print(); cout << endl;
+
+    return 0;
+} диагональ почти ноль → невозможно продолжить
             if abs(diag) < 1e-14:
                 raise ValueError(f"Нулевой элемент на диагонали в строке {i}. Метод SOR не применим.")
 
