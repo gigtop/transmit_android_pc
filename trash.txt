@@ -1,21 +1,26 @@
 #include <iostream>
+#include <cstring>
 using namespace std;
+
+const int MAX_LEN = 50; // максимальная длина строки
 
 class MySet {
 private:
-    int* data;       // динамический массив для элементов
-    int size;        // текущее количество элементов
-    int capacity;    // вместимость массива
+    char** data;    // динамический массив строк
+    int size;       // текущее количество элементов
+    int capacity;   // вместимость
 
-    static int* UNIVERSUM;  // универсум
+    static char** UNIVERSUM;
     static int U_size;
 
-    // Увеличение массива при переполнении
+    // Увеличение массива
     void resize() {
         int newCap = capacity * 2;
-        int* newData = new int[newCap];
+        char** newData = new char*[newCap];
         for (int i = 0; i < size; i++) {
-            newData[i] = data[i];
+            newData[i] = new char[MAX_LEN];
+            strcpy(newData[i], data[i]);
+            delete[] data[i];
         }
         delete[] data;
         data = newData;
@@ -23,40 +28,45 @@ private:
     }
 
 public:
-    // Конструктор
     MySet(int cap = 10) {
         size = 0;
         capacity = cap;
-        data = new int[capacity];
-    }
-
-    // Деструктор
-    ~MySet() {
-        delete[] data;
-    }
-
-    // Включить элемент
-    void add(int t) {
-        if (!contains(t)) {
-            if (size == capacity) resize();
-            data[size++] = t;
+        data = new char*[capacity];
+        for (int i = 0; i < capacity; i++) {
+            data[i] = new char[MAX_LEN];
+            data[i][0] = '\0';
         }
     }
 
-    // Принадлежит?
-    bool contains(int t) const {
+    ~MySet() {
+        for (int i = 0; i < capacity; i++) {
+            delete[] data[i];
+        }
+        delete[] data;
+    }
+
+    // Проверка принадлежности
+    bool contains(const char* t) const {
         for (int i = 0; i < size; i++) {
-            if (data[i] == t) return true;
+            if (strcmp(data[i], t) == 0) return true;
         }
         return false;
     }
 
-    // Исключить элемент
-    void remove(int t) {
+    // Добавить элемент
+    void add(const char* t) {
+        if (!contains(t)) {
+            if (size == capacity) resize();
+            strcpy(data[size++], t);
+        }
+    }
+
+    // Удалить элемент
+    void remove(const char* t) {
         for (int i = 0; i < size; i++) {
-            if (data[i] == t) {
+            if (strcmp(data[i], t) == 0) {
                 for (int j = i; j < size - 1; j++) {
-                    data[j] = data[j + 1];
+                    strcpy(data[j], data[j + 1]);
                 }
                 size--;
                 break;
@@ -105,12 +115,17 @@ public:
     }
 
     // Установить универсум
-    static void setUniversum(int arr[], int n) {
-        delete[] UNIVERSUM;
+    static void setUniversum(const char* arr[], int n) {
+        // освободить память, если уже был установлен
+        if (UNIVERSUM != nullptr) {
+            for (int i = 0; i < U_size; i++) delete[] UNIVERSUM[i];
+            delete[] UNIVERSUM;
+        }
         U_size = n;
-        UNIVERSUM = new int[n];
+        UNIVERSUM = new char*[n];
         for (int i = 0; i < n; i++) {
-            UNIVERSUM[i] = arr[i];
+            UNIVERSUM[i] = new char[MAX_LEN];
+            strcpy(UNIVERSUM[i], arr[i]);
         }
     }
 
@@ -122,24 +137,24 @@ public:
     }
 };
 
-// Инициализация статических полей
-int* MySet::UNIVERSUM = nullptr;
+// статические поля
+char** MySet::UNIVERSUM = nullptr;
 int MySet::U_size = 0;
 
 
 // -------------------- Демонстрация --------------------
 int main() {
-    int U[] = {1, 2, 3, 4, 5};
+    const char* U[] = {"apple", "banana", "cherry", "date", "fig"};
     MySet::setUniversum(U, 5);
 
     MySet A, B;
 
-    A.add(1);
-    A.add(2);
-    A.add(3);
+    A.add("apple");
+    A.add("banana");
+    A.add("cherry");
 
-    B.add(3);
-    B.add(4);
+    B.add("cherry");
+    B.add("date");
 
     cout << "A = "; A.print(); cout << endl;
     cout << "B = "; B.print(); cout << endl;
@@ -149,10 +164,10 @@ int main() {
     cout << "Разность A - B: "; A.Difference(B).print(); cout << endl;
     cout << "Дополнение A: "; A.Complement().print(); cout << endl;
     cout << "Пусто ли A? " << (A.isEmpty() ? "Да" : "Нет") << endl;
-    cout << "Элемент 2 принадлежит A? " << (A.contains(2) ? "Да" : "Нет") << endl;
+    cout << "Принадлежит ли 'banana' множеству A? " << (A.contains("banana") ? "Да" : "Нет") << endl;
 
-    A.remove(2);
-    cout << "После удаления 2: "; A.print(); cout << endl;
+    A.remove("banana");
+    cout << "После удаления 'banana': "; A.print(); cout << endl;
 
     return 0;
 }
