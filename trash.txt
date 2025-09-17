@@ -1,97 +1,63 @@
 #include <iostream>
-#include <cstring>
+#include <vector>
+#include <string>
 using namespace std;
-
-const int MAX_LEN = 50; // максимальная длина строки
 
 class MySet {
 private:
-    char** data;    // динамический массив строк
-    int size;       // текущее количество элементов
-    int capacity;   // вместимость
+    vector<string> data;              // хранение элементов множества
+    static vector<string> UNIVERSUM;  // универсальное множество
 
-    static char** UNIVERSUM;
-    static int U_size;
-
-    // Увеличение массива
-    void resize() {
-        int newCap = capacity * 2;
-        char** newData = new char*[newCap];
-        for (int i = 0; i < size; i++) {
-            newData[i] = new char[MAX_LEN];
-            strcpy(newData[i], data[i]);
-            delete[] data[i];
+    // Собственная реализация поиска
+    int findIndex(const string& t) const {
+        for (size_t i = 0; i < data.size(); i++) {
+            if (data[i] == t)
+                return (int)i;
         }
-        delete[] data;
-        data = newData;
-        capacity = newCap;
+        return -1; // если элемент не найден
     }
 
 public:
-    MySet(int cap = 10) {
-        size = 0;
-        capacity = cap;
-        data = new char*[capacity];
-        for (int i = 0; i < capacity; i++) {
-            data[i] = new char[MAX_LEN];
-            data[i][0] = '\0';
-        }
+    // Создать пустое множество
+    MySet() {}
+
+    // Включить элемент
+    void add(const string& t) {
+        if (!contains(t))
+            data.push_back(t);
     }
 
-    ~MySet() {
-        for (int i = 0; i < capacity; i++) {
-            delete[] data[i];
-        }
-        delete[] data;
+    // Принадлежит?
+    bool contains(const string& t) const {
+        return findIndex(t) != -1;
     }
 
-    // Проверка принадлежности
-    bool contains(const char* t) const {
-        for (int i = 0; i < size; i++) {
-            if (strcmp(data[i], t) == 0) return true;
-        }
-        return false;
-    }
-
-    // Добавить элемент
-    void add(const char* t) {
-        if (!contains(t)) {
-            if (size == capacity) resize();
-            strcpy(data[size++], t);
-        }
-    }
-
-    // Удалить элемент
-    void remove(const char* t) {
-        for (int i = 0; i < size; i++) {
-            if (strcmp(data[i], t) == 0) {
-                for (int j = i; j < size - 1; j++) {
-                    strcpy(data[j], data[j + 1]);
-                }
-                size--;
-                break;
-            }
-        }
+    // Исключить
+    void remove(const string& t) {
+        int idx = findIndex(t);
+        if (idx != -1)
+            data.erase(data.begin() + idx);
     }
 
     // Пусто?
     bool isEmpty() const {
-        return size == 0;
+        return data.empty();
     }
 
     // Объединение
     MySet Union(const MySet& other) const {
-        MySet result(size + other.size);
-        for (int i = 0; i < size; i++) result.add(data[i]);
-        for (int i = 0; i < other.size; i++) result.add(other.data[i]);
+        MySet result = *this;
+        for (const string& x : other.data)
+            result.add(x);
         return result;
     }
 
     // Пересечение
     MySet Intersection(const MySet& other) const {
         MySet result;
-        for (int i = 0; i < size; i++) {
-            if (other.contains(data[i])) result.add(data[i]);
+        for (const string& x : data) {
+            if (other.contains(x))
+                result.add(x);
         }
         return result;
     }
@@ -99,8 +65,9 @@ public:
     // Разность
     MySet Difference(const MySet& other) const {
         MySet result;
-        for (int i = 0; i < size; i++) {
-            if (!other.contains(data[i])) result.add(data[i]);
+        for (const string& x : data) {
+            if (!other.contains(x))
+                result.add(x);
         }
         return result;
     }
@@ -108,44 +75,34 @@ public:
     // Дополнение
     MySet Complement() const {
         MySet result;
-        for (int i = 0; i < U_size; i++) {
-            if (!contains(UNIVERSUM[i])) result.add(UNIVERSUM[i]);
+        for (const string& x : UNIVERSUM) {
+            if (!contains(x))
+                result.add(x);
         }
         return result;
     }
 
     // Установить универсум
-    static void setUniversum(const char* arr[], int n) {
-        // освободить память, если уже был установлен
-        if (UNIVERSUM != nullptr) {
-            for (int i = 0; i < U_size; i++) delete[] UNIVERSUM[i];
-            delete[] UNIVERSUM;
-        }
-        U_size = n;
-        UNIVERSUM = new char*[n];
-        for (int i = 0; i < n; i++) {
-            UNIVERSUM[i] = new char[MAX_LEN];
-            strcpy(UNIVERSUM[i], arr[i]);
-        }
+    static void setUniversum(const vector<string>& u) {
+        UNIVERSUM = u;
     }
 
     // Печать
     void print() const {
         cout << "{ ";
-        for (int i = 0; i < size; i++) cout << data[i] << " ";
+        for (const string& x : data) cout << x << " ";
         cout << "}";
     }
 };
 
-// статические поля
-char** MySet::UNIVERSUM = nullptr;
-int MySet::U_size = 0;
+// Определение статического поля
+vector<string> MySet::UNIVERSUM = {};
 
 
 // -------------------- Демонстрация --------------------
 int main() {
-    const char* U[] = {"apple", "banana", "cherry", "date", "fig"};
-    MySet::setUniversum(U, 5);
+    // Задаём универсум
+    MySet::setUniversum({"apple", "banana", "cherry", "date", "fig"});
 
     MySet A, B;
 
@@ -164,10 +121,10 @@ int main() {
     cout << "Разность A - B: "; A.Difference(B).print(); cout << endl;
     cout << "Дополнение A: "; A.Complement().print(); cout << endl;
     cout << "Пусто ли A? " << (A.isEmpty() ? "Да" : "Нет") << endl;
-    cout << "Принадлежит ли 'banana' множеству A? " << (A.contains("banana") ? "Да" : "Нет") << endl;
+    cout << "Элемент banana принадлежит A? " << (A.contains("banana") ? "Да" : "Нет") << endl;
 
     A.remove("banana");
-    cout << "После удаления 'banana': "; A.print(); cout << endl;
+    cout << "После удаления banana: "; A.print(); cout << endl;
 
     return 0;
 }
