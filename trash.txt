@@ -1,144 +1,261 @@
+#ifndef VECTOR_HADER
+#define VECTOR_HADER
+
 #include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
 
-class MySet {
+template <typename T>
+class My_vector {
 private:
-    vector<string> data;              // хранение элементов множества
-    static vector<string> UNIVERSUM;  // универсальное множество
-
-    // Собственная реализация поиска
-    int findIndex(const string& t) const {
-        for (size_t i = 0; i < data.size(); i++) {
-            if (data[i] == t)
-                return (int)i;
-        }
-        return -1; // если элемент не найден
-    }
-
-    // Проверка: элемент есть в универсуме?
-    static bool inUniversum(const string& t) {
-        for (const string& x : UNIVERSUM) {
-            if (x == t) return true;
-        }
-        return false;
-    }
-
+    T* data;
+    size_t size_;
+    size_t capacity_;
 public:
-    // Создать пустое множество
-    MySet() {}
 
-    // Включить элемент (только если есть в универсуме)
-    void add(const string& t) {
-        if (inUniversum(t) && !contains(t))
-            data.push_back(t);
-    }
+    // Constructors
+    My_vector();
+    My_vector(const My_vector& other);
+    My_vector(My_vector&& other) noexcept;
+    My_vector(std::initializer_list<T> init);
+    ~My_vector();
 
-    // Принадлежит?
-    bool contains(const string& t) const {
-        return findIndex(t) != -1;
-    }
+    // Operators
+    T& operator[](size_t index);
+    const T& operator[](size_t index) const;
+    T& at(size_t index);
+    const T& at(size_t index) const;
+    My_vector& operator=(const My_vector& other);
+    My_vector& operator=(My_vector&& other)noexcept;
 
-    // Исключить
-    void remove(const string& t) {
-        int idx = findIndex(t);
-        if (idx != -1)
-            data.erase(data.begin() + idx);
-    }
+    // Comparison operators
+    bool operator==(const My_vector& other) const;
+    bool operator!=(const My_vector& other) const;
 
-    // Пусто?
-    bool isEmpty() const {
-        return data.empty();
-    }
+    // Methods
+    void push_back(const T& value);
+    void insert(size_t index, const T& value);
+    void erase(size_t index);
+    void clear();
+    void reserve(size_t new_capacity);
+    size_t size() const;
+    size_t capacity() const;
 
-    // Объединение
-    MySet Union(const MySet& other) const {
-        MySet result = *this;
-        for (const string& x : other.data)
-            result.add(x);
-        return result;
-    }
+    // Iterator methods
+    T* begin() { return data; }
+    T* end() { return data + size_; }
+    const T* begin() const { return data; }
+    const T* end() const { return data + size_; }
+    const T* cbegin() const { return data; }
+    const T* cend() const { return data + size_; }
 
-    // Пересечение
-    MySet Intersection(const MySet& other) const {
-        MySet result;
-        for (const string& x : data) {
-            if (other.contains(x))
-                result.add(x);
-        }
-        return result;
-    }
-
-    // Разность
-    MySet Difference(const MySet& other) const {
-        MySet result;
-        for (const string& x : data) {
-            if (!other.contains(x))
-                result.add(x);
-        }
-        return result;
-    }
-
-    // Дополнение
-    MySet Complement() const {
-        MySet result;
-        for (const string& x : UNIVERSUM) {
-            if (!contains(x))
-                result.add(x);
-        }
-        return result;
-    }
-
-    // Установить универсум
-    static void setUniversum(const vector<string>& u) {
-        UNIVERSUM = u;
-    }
-
-    // Печать
-    void print() const {
-        cout << "{ ";
-        for (const string& x : data) cout << x << " ";
-        cout << "}";
-    }
+    // Friend function for output
+    friend std::ostream& operator<<(std::ostream& os, const My_vector& vec);
 };
 
-// Определение статического поля
-vector<string> MySet::UNIVERSUM = {};
+// Constructors
+template <typename T>
+My_vector<T>::My_vector() : data(nullptr), size_(0), capacity_(0) {}
 
-
-// -------------------- Демонстрация --------------------
-int main() {
-    setlocale(LC_ALL, ""); // поддержка кириллицы
-
-    // Задаём универсум (мебель)
-    MySet::setUniversum({"стол", "стул", "диван", "кресло", "шкаф", "кровать"});
-
-    MySet A, B;
-
-    A.add("стол");
-    A.add("стул");
-    A.add("шкаф");
-
-    B.add("диван");
-    B.add("стул");
-
-    cout << "A = "; A.print(); cout << endl;
-    cout << "B = "; B.print(); cout << endl;
-
-    cout << "Объединение: "; A.Union(B).print(); cout << endl;
-    cout << "Пересечение: "; A.Intersection(B).print(); cout << endl;
-    cout << "Разность A - B: "; A.Difference(B).print(); cout << endl;
-    cout << "Дополнение A: "; A.Complement().print(); cout << endl;
-    cout << "Пусто ли A? " << (A.isEmpty() ? "Да" : "Нет") << endl;
-    cout << "Элемент стул принадлежит A? " << (A.contains("стул") ? "Да" : "Нет") << endl;
-
-    A.remove("стул");
-    cout << "После удаления стула: "; A.print(); cout << endl;
-
-    // Попробуем добавить элемент, которого нет в универсуме
-    A.add("лампа"); // не добавится
-    cout << "После попытки добавить 'лампа': "; A.print(); cout << endl;
-
-    return 0;
+template <typename T>
+My_vector<T>::My_vector(const My_vector& other) : size_(other.size_), capacity_(other.capacity_) {
+    if (other.capacity_ > 0) {
+        data = new T[capacity_];
+        for (size_t i = 0; i < size_; ++i) {
+            data[i] = other.data[i];
+        }
+    }
+    else {
+        data = nullptr;
+    }
 }
+
+template <typename T>
+My_vector<T>::My_vector(My_vector&& other) noexcept : data(other.data), size_(other.size_), capacity_(other.capacity_) {
+    other.data = nullptr;
+    other.size_ = 0;
+    other.capacity_ = 0;
+}
+
+template <typename T>
+My_vector<T>::My_vector(std::initializer_list<T> init) : size_(init.size()), capacity_(init.size()) {
+    data = new T[capacity_];
+    size_t i = 0;
+    for (const auto& item : init) {
+        data[i++] = item;
+    }
+}
+
+template <typename T>
+My_vector<T>::~My_vector() {
+    delete[] data;
+}
+
+// Operators
+template <typename T>
+T& My_vector<T>::operator[](size_t index) {
+    return data[index];
+}
+
+template <typename T>
+const T& My_vector<T>::operator[](size_t index) const {
+    return data[index];
+}
+
+template <typename T>
+T& My_vector<T>::at(size_t index) {
+    if (index >= size_) {
+        throw std::out_of_range("Index out of range");
+    }
+    return data[index];
+}
+
+template <typename T>
+const T& My_vector<T>::at(size_t index) const {
+    if (index >= size_) {
+        throw std::out_of_range("Index out of range");
+    }
+    return data[index];
+}
+
+
+template <typename T>
+My_vector<T>& My_vector<T>::operator=(const My_vector& other) {
+    if (this != &other) {
+        T* new_data = nullptr;
+        if (other.capacity_ > 0) {
+            new_data = new T[other.capacity_];
+            for (size_t i = 0; i < other.size_; ++i) {
+                new_data[i] = other.data[i];
+            }
+        }
+
+        delete[] data;
+        data = new_data;
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+    }
+    return *this;
+
+
+    if (this != &other) {
+
+        T* new_data = nullptr;
+        if (other.capacity_ > 0) {
+            new_data = new T[other.capacity_];
+            for (size_t i = 0; i < other.size_; ++i) {
+                new_data[i] = other.data[i];
+            }
+        }
+
+        delete[] data;
+        data = new_data;
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+    }
+    return *this;
+}
+
+template <typename T>
+My_vector<T>& My_vector<T>::operator=(My_vector&& other) noexcept {
+    if (this != &other) {
+        delete[] data;
+        data = other.data;
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+        other.data = nullptr;
+        other.size_ = 0;
+        other.capacity_ = 0;
+    }
+    return *this;
+}
+
+// Comparison operators
+template <typename T>
+bool My_vector<T>::operator==(const My_vector& other) const {
+    if (size_ != other.size_) return false;
+    for (size_t i = 0; i < size_; ++i) {
+        if (data[i] != other.data[i]) return false;
+    }
+    return true;
+}
+
+template <typename T>
+bool My_vector<T>::operator!=(const My_vector& other) const {
+    return !(*this == other);
+}
+
+// Methods
+template <typename T>
+void My_vector<T>::push_back(const T& value) {
+    if (size_ == capacity_) {
+        reserve(capacity_ == 0 ? 1 : capacity_ * 2);
+    }
+    data[size_++] = value;
+}
+
+template <typename T>
+void My_vector<T>::insert(size_t index, const T& value) {
+    if (index > size_) {
+        throw std::out_of_range("Index out of range");
+    }
+    if (size_ == capacity_) {
+        reserve(capacity_ == 0 ? 1 : capacity_ * 2);
+    }
+    for (size_t i = size_; i > index; --i) {
+        data[i] = data[i - 1];
+    }
+    data[index] = value;
+    ++size_;
+}
+
+template <typename T>
+void My_vector<T>::erase(size_t index) {
+    if (index >= size_) {
+        throw std::out_of_range("Index out of range");
+    }
+    for (size_t i = index; i < size_ - 1; ++i) {
+        data[i] = data[i + 1];
+    }
+    --size_;
+}
+
+template <typename T>
+void My_vector<T>::clear() {
+    size_ = 0;
+}
+
+template <typename T>
+void My_vector<T>::reserve(size_t new_capacity) {
+    if (new_capacity > capacity_) {
+        T* new_data = new T[new_capacity];
+        for (size_t i = 0; i < size_; ++i) {
+            new_data[i] = data[i];
+        }
+        delete[] data;
+        data = new_data;
+        capacity_ = new_capacity;
+    }
+}
+
+template <typename T>
+size_t My_vector<T>::size() const {
+    return size_;
+}
+
+template <typename T>
+size_t My_vector<T>::capacity() const {
+    return capacity_;
+}
+
+// Friend function for output
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const My_vector<T>& vec) {
+    os << "[";
+    for (size_t i = 0; i < vec.size_; ++i) {
+        os << vec.data[i];
+        if (i < vec.size_ - 1) os << ", ";
+    }
+    os << "]";
+    return os;
+}
+
+#endif
