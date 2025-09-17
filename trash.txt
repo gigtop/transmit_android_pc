@@ -1,12 +1,4 @@
-def sor(n, a, omega=1.25, tol=1e-9, max_iter=10000):
-    x = [0.0] * n  # начальное приближение
-
-    for iteration in range(max_iter):
-        max_diff = 0.0
-        for i in range(n):
-            diag = a[i][i]
-
-            # #include <iostream>
+#include <iostream>
 using namespace std;
 
 class MySet {
@@ -163,18 +155,4 @@ int main() {
     cout << "После удаления 2: "; A.print(); cout << endl;
 
     return 0;
-} диагональ почти ноль → невозможно продолжить
-            if abs(diag) < 1e-14:
-                raise ValueError(f"Нулевой элемент на диагонали в строке {i}. Метод SOR не применим.")
-
-            s1 = sum(a[i][j] * x[j] for j in range(i))
-            s2 = sum(a[i][j] * x[j] for j in range(i+1, n))
-
-            new_xi = (1 - omega) * x[i] + omega * (a[i][n] - s1 - s2) / diag
-            max_diff = max(max_diff, abs(new_xi - x[i]))
-            x[i] = new_xi
-
-        if max_diff < tol:
-            return x  # решение найдено
-
-    raise RuntimeError("Метод SOR не сошёлся за указанное число итераций")
+}
