@@ -17,13 +17,21 @@ private:
         return -1; // если элемент не найден
     }
 
+    // Проверка: элемент есть в универсуме?
+    static bool inUniversum(const string& t) {
+        for (const string& x : UNIVERSUM) {
+            if (x == t) return true;
+        }
+        return false;
+    }
+
 public:
     // Создать пустое множество
     MySet() {}
 
-    // Включить элемент
+    // Включить элемент (только если есть в универсуме)
     void add(const string& t) {
-        if (!contains(t))
+        if (inUniversum(t) && !contains(t))
             data.push_back(t);
     }
 
@@ -101,17 +109,19 @@ vector<string> MySet::UNIVERSUM = {};
 
 // -------------------- Демонстрация --------------------
 int main() {
-    // Задаём универсум
-    MySet::setUniversum({"apple", "banana", "cherry", "date", "fig"});
+    setlocale(LC_ALL, ""); // поддержка кириллицы
+
+    // Задаём универсум (мебель)
+    MySet::setUniversum({"стол", "стул", "диван", "кресло", "шкаф", "кровать"});
 
     MySet A, B;
 
-    A.add("apple");
-    A.add("banana");
-    A.add("cherry");
+    A.add("стол");
+    A.add("стул");
+    A.add("шкаф");
 
-    B.add("cherry");
-    B.add("date");
+    B.add("диван");
+    B.add("стул");
 
     cout << "A = "; A.print(); cout << endl;
     cout << "B = "; B.print(); cout << endl;
@@ -121,10 +131,14 @@ int main() {
     cout << "Разность A - B: "; A.Difference(B).print(); cout << endl;
     cout << "Дополнение A: "; A.Complement().print(); cout << endl;
     cout << "Пусто ли A? " << (A.isEmpty() ? "Да" : "Нет") << endl;
-    cout << "Элемент banana принадлежит A? " << (A.contains("banana") ? "Да" : "Нет") << endl;
+    cout << "Элемент стул принадлежит A? " << (A.contains("стул") ? "Да" : "Нет") << endl;
 
-    A.remove("banana");
-    cout << "После удаления banana: "; A.print(); cout << endl;
+    A.remove("стул");
+    cout << "После удаления стула: "; A.print(); cout << endl;
+
+    // Попробуем добавить элемент, которого нет в универсуме
+    A.add("лампа"); // не добавится
+    cout << "После попытки добавить 'лампа': "; A.print(); cout << endl;
 
     return 0;
 }
