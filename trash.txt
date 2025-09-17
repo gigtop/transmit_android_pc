@@ -1,15 +1,13 @@
-#include <iostream>
 #include <string>
-#include "My_vector.h"   // подключаем твой контейнер
+#include "My_vector.h"
 
 using namespace std;
 
 class Set {
 private:
-    My_vector<string> elements;       // множество
-    My_vector<string> universe;       // универсум мебели
+    My_vector<string> elements;
+    My_vector<string> universe;
 
-    // поиск элемента в векторе
     int find(const My_vector<string>& vec, const string& value) const {
         for (size_t i = 0; i < vec.size(); i++) {
             if (vec[i] == value) return (int)i;
@@ -20,15 +18,13 @@ private:
 public:
     Set(const My_vector<string>& univ) : universe(univ) {}
 
-    // Создать (пустое множество)
     void create() {
         elements.clear();
     }
 
-    // Включить элемент (если есть в универсуме и ещё нет в множестве)
     void include(const string& t) {
         if (find(universe, t) == -1) {
-            cout << "❌ Элемента \"" << t << "\" нет в универсуме!\n";
+            printf("❌ Элемента \"%s\" нет в универсуме!\n", t.c_str());
             return;
         }
         if (find(elements, t) == -1) {
@@ -36,23 +32,19 @@ public:
         }
     }
 
-    // Принадлежит?
     bool belongs(const string& t) const {
         return (find(elements, t) != -1);
     }
 
-    // Исключить
     void exclude(const string& t) {
         int pos = find(elements, t);
         if (pos != -1) elements.erase(pos);
     }
 
-    // Пусто?
     bool empty() const {
         return elements.size() == 0;
     }
 
-    // Объединение
     Set Union(const Set& other) const {
         Set result(universe);
         result.elements = elements;
@@ -64,7 +56,6 @@ public:
         return result;
     }
 
-    // Пересечение
     Set Intersection(const Set& other) const {
         Set result(universe);
         for (size_t i = 0; i < elements.size(); i++) {
@@ -75,7 +66,6 @@ public:
         return result;
     }
 
-    // Разность
     Set Difference(const Set& other) const {
         Set result(universe);
         for (size_t i = 0; i < elements.size(); i++) {
@@ -86,7 +76,6 @@ public:
         return result;
     }
 
-    // Дополнение
     Set Complement() const {
         Set result(universe);
         for (size_t i = 0; i < universe.size(); i++) {
@@ -97,22 +86,19 @@ public:
         return result;
     }
 
-    // Печать
     void print() const {
-        cout << "{ ";
+        printf("{ ");
         for (size_t i = 0; i < elements.size(); i++) {
-            cout << elements[i];
-            if (i < elements.size() - 1) cout << ", ";
+            printf("%s", elements[i].c_str());
+            if (i < elements.size() - 1) printf(", ");
         }
-        cout << " }" << endl;
+        printf(" }\n");
     }
 };
-
 
 int main() {
     setlocale(LC_ALL, "ru");
 
-    // Универсум мебели
     My_vector<string> universe = {"стол", "стул", "шкаф", "диван", "кресло", "кровать"};
 
     Set A(universe), B(universe);
@@ -128,13 +114,13 @@ int main() {
     B.include("стул");
     B.include("кровать");
 
-    cout << "Множество A = "; A.print();
-    cout << "Множество B = "; B.print();
+    printf("Множество A = "); A.print();
+    printf("Множество B = "); B.print();
 
-    cout << "Объединение: "; A.Union(B).print();
-    cout << "Пересечение: "; A.Intersection(B).print();
-    cout << "Разность A\\B: "; A.Difference(B).print();
-    cout << "Дополнение A: "; A.Complement().print();
+    printf("Объединение: "); A.Union(B).print();
+    printf("Пересечение: "); A.Intersection(B).print();
+    printf("Разность A\\B: "); A.Difference(B).print();
+    printf("Дополнение A: "); A.Complement().print();
 
     return 0;
 }
